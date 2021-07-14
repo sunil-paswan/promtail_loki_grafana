@@ -1,0 +1,29 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://172.31.47.200:3100/loki/api/v1/push
+
+scrape_configs:
+ - job_name: apache2-log
+   static_configs:
+   - targets:
+      - localhost
+     labels:
+      job: apache
+      env: dev
+      __path__: /home/ubuntu/Fake-Apache-Log-Generator/*.log
+   pipeline_stages:
+   - match:
+       selector: '{job="apache"}'
+       stages:
+       - regex:
+           expression: "^(?P<ip>\\S+) (?P<identd>\\S+) (?P<user>\\S+) \\[(?P<timestamp>[\\w:/]+\\s[+\\-]\\d{4})\\] \"(?P<action>\\S+)\\s?(?P<path>\\S+)?\\s?(?P<protocol>\\S+)?\" (?P<status_code>\\d{3}|-) (?P<size>\\d+|-)\\s?\"?(?P<referer>[^\"]*)\"?\\s?\"?(?P<useragent>[^\"]*)?\"?$"
+       - labels:
+           action:
+           status_code:
+
